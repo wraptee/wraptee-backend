@@ -25,7 +25,7 @@ router.post("/send-email", async (req, res) => {
       from: process.env.EMAIL,
       to: process.env.TO_EMAIL, // Destination email address
       subject: "New Customer Info",
-      text: `Name: ${name}\nPhone: ${phone}`,
+      text: `Name: ${email}\nPhone: ${phoneNumber}`,
     };
 
     // Send email
