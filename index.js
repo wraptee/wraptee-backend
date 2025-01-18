@@ -7,7 +7,12 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+// Use CORS middleware to allow requests from specific origins
+app.use(cors({
+  origin: "http://localhost:3000",  // Replace with your frontend's origin
+  methods: ["GET", "POST", "PUT", "DELETE"],  // Allow these methods
+  allowedHeaders: ["Content-Type", "Authorization"],  // Allow these headers
+}));
 app.use(bodyParser.json());
 
 // Import Routes
