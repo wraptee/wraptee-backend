@@ -4,10 +4,10 @@ const router = express.Router();
 
 // POST route to send email
 router.post("/send-email", async (req, res) => {
-  const { name, phone } = req.body;
+  const { email, phone } = req.body;
 
-  if (!name || !phone) {
-    return res.status(400).json({ message: "Name and phone number are required" });
+  if (!email || !phone) {
+    return res.status(400).json({ message: "Email and Phone number are required" });
   }
 
   try {
