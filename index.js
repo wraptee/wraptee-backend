@@ -4,25 +4,22 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
-// Middleware
-// Use CORS middleware to allow requests from specific origins
-app.use(cors({
-  origin: "http://localhost:3000",  // Replace with your frontend's origin
-  methods: ["GET", "POST", "PUT", "DELETE"],  // Allow these methods
-  allowedHeaders: ["Content-Type", "Authorization"],  // Allow these headers
-},
-  {
-    origin: "https://wraptee-frontend-rudras-projects-d276a0b1.vercel.app",  // Replace with your frontend's origin
-    methods: ["GET", "POST", "PUT", "DELETE"],  // Allow these methods
-    allowedHeaders: ["Content-Type", "Authorization"],  // Allow these headers
-  },
-  {
-    origin: "https://wraptee.com",  // Replace with your frontend's origin
-    methods: ["GET", "POST", "PUT", "DELETE"],  // Allow these methods
-    allowedHeaders: ["Content-Type", "Authorization"],  // Allow these headers
-}));
+// CORS configuration to allow multiple origins
+const corsOptions = {
+  origin: [
+    "http://localhost:3000",  // Local development URL
+    "https://wraptee-frontend-rudras-projects-d276a0b1.vercel.app",  // Vercel URL
+    "https://wraptee.com"  // Your production URL
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],  // Allowed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"],  // Allowed headers
+};
+
+// Middleware to use CORS with the defined options
+app.use(cors(corsOptions));
+
 app.use(bodyParser.json());
 
 // Import Routes
