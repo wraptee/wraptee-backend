@@ -2,11 +2,16 @@ const express = require("express");
 const nodemailer = require("nodemailer");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
 // Set up storage engine for multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../uploads")); // Directory where images will be stored temporarily
+    const uploadDirectory = path.join(__dirname, "../uploads");
+    if (!fs.existsSync(uploadDirectory)) {
+      fs.mkdirSync(uploadDirectory, { recursive: true });
+    }
+    cb(null, uploadDirectory); // Directory where images will be stored temporarily
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname)); // Create unique filename based on timestamp
@@ -27,7 +32,11 @@ router.post("/send-order", upload.array("productImages"), async (req, res) => {
   }
 
   try {
-    // Create a transporter for sending the email
+    // Log the request body for debugging
+    console.log("Received order details:", { name, email, phoneNumber, cart });
+    console.log("Uploaded files:", req.files);
+
+    // Create a transporter for sending email
     const transporter = nodemailer.createTransport({
       service: "Gmail",
       auth: {
@@ -39,13 +48,7 @@ router.post("/send-order", upload.array("productImages"), async (req, res) => {
     // Format the cart details with images (if available)
     const cartDetails = cart
       .map((item, index) => {
-        // Check if an image exists for this product in the request
         const imageFile = req.files && req.files[index];
-
-        // Use the appropriate image URL or 'No Image' if none is provided
-        const imageUrl = imageFile
-          ? `cid:${imageFile.filename}` // Use CID for inline images
-          : item.imageUrl || "No Image";
 
         return `
         <tr>
@@ -124,6 +127,9 @@ router.post("/send-order", upload.array("productImages"), async (req, res) => {
       })) : []),
     ];
 
+    // Log attachments to ensure they're correctly set
+    console.log("Attachments:", attachments);
+
     const mailOptions = {
       from: process.env.EMAIL,
       to: `${email}, ${process.env.TO_EMAIL}`,
@@ -132,11 +138,16 @@ router.post("/send-order", upload.array("productImages"), async (req, res) => {
       attachments: attachments,
     };
 
+    // Send the email
     await transporter.sendMail(mailOptions);
     res.status(200).json({ message: "Order email sent successfully" });
   } catch (error) {
     console.error("Error sending the email:", error);
-    res.status(500).json({ message: "Failed to send order email", error: error.message });
+    res.status(500).json({
+      message: "Failed to send order email",
+      error: error.message,
+      stack: error.stack, // Include stack trace for debugging
+    });
   }
 });
 
