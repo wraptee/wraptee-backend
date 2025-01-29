@@ -27,7 +27,7 @@ router.post("/send-order", upload.array("productImages"), async (req, res) => {
   }
 
   try {
-    // Create a transporter
+    // Create a transporter for sending the email
     const transporter = nodemailer.createTransport({
       service: "Gmail",
       auth: {
@@ -41,6 +41,11 @@ router.post("/send-order", upload.array("productImages"), async (req, res) => {
       .map((item, index) => {
         // Check if an image exists for this product in the request
         const imageFile = req.files && req.files[index];
+
+        // Use the appropriate image URL or 'No Image' if none is provided
+        const imageUrl = imageFile
+          ? `cid:${imageFile.filename}` // Use CID for inline images
+          : item.imageUrl || "No Image";
 
         return `
         <tr>

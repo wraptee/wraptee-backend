@@ -21,6 +21,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
+app.use('/api/static', express.static(path.join(__dirname, 'static')));
 
 // Import Routes
 const emailRoutes = require("./routes/email");
