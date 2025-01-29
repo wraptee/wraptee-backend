@@ -24,7 +24,9 @@ app.use(bodyParser.json());
 
 // Import Routes
 const emailRoutes = require("./routes/email");
+const orderRoutes = require('./routes/order')
 app.use("/api", emailRoutes);
+app.use('/api', orderRoutes)
 
 // Start Server
 app.listen(port, () => {
