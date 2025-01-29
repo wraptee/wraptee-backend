@@ -10,7 +10,7 @@ router.post("/send-order", async (req, res) => {
 
   // Validate input
   if (!name || !email || !phoneNumber || !cart || cart.length === 0) {
-    return res.status(400).json({ message: "All fields are required" });
+    return res.status(400).json({ message: "All fields are mandatory" });
   }
 
   try {
