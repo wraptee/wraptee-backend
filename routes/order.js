@@ -1,29 +1,10 @@
 const express = require("express");
 const nodemailer = require("nodemailer");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-
-// Set up storage engine for multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDirectory = path.join(__dirname, "../uploads");
-    if (!fs.existsSync(uploadDirectory)) {
-      fs.mkdirSync(uploadDirectory, { recursive: true });
-    }
-    cb(null, uploadDirectory); // Directory where images will be stored temporarily
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Create unique filename based on timestamp
-  },
-});
-
-const upload = multer({ storage: storage }); // Initialize multer with storage configuration
 
 const router = express.Router();
 
 // POST route to send orders
-router.post("/send-order", upload.array("productImages"), async (req, res) => {
+router.post("/send-order", async (req, res) => {
   const { name, email, phoneNumber, cart } = req.body;
 
   // Validate input
@@ -34,7 +15,6 @@ router.post("/send-order", upload.array("productImages"), async (req, res) => {
   try {
     // Log the request body for debugging
     console.log("Received order details:", { name, email, phoneNumber, cart });
-    console.log("Uploaded files:", req.files);
 
     // Create a transporter for sending email
     const transporter = nodemailer.createTransport({
@@ -45,15 +25,16 @@ router.post("/send-order", upload.array("productImages"), async (req, res) => {
       },
     });
 
-    // Format the cart details with images (if available)
+    // Format the cart details with product URLs
     const cartDetails = cart
-      .map((item, index) => {
-        const imageFile = req.files && req.files[index];
+      .map((item) => {
+        // Construct product URL (assuming the SKU is in the 'sku' field)
+        const productUrl = `https://wraptee.com/product/${item.sku}`;
 
         return `
         <tr>
           <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
-            ${imageFile ? `<img src="cid:${imageFile.filename}" alt="${item.name}" style="width: 80px; height: 80px; border-radius: 5px;">` : 'No Image'}
+            <a href="${productUrl}" target="_blank" style="color: #007bff; text-decoration: none;">View Product</a>
           </td>
           <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
             ${item.name}
@@ -91,8 +72,8 @@ router.post("/send-order", upload.array("productImages"), async (req, res) => {
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
           <thead>
             <tr>
-              <th style="padding: 10px; border: 1px solid #ddd; background: #f8f8f8;">Image</th>
               <th style="padding: 10px; border: 1px solid #ddd; background: #f8f8f8;">Product</th>
+              <th style="padding: 10px; border: 1px solid #ddd; background: #f8f8f8;">Product Name</th>
               <th style="padding: 10px; border: 1px solid #ddd; background: #f8f8f8;">Quantity</th>
               <th style="padding: 10px; border: 1px solid #ddd; background: #f8f8f8;">Price</th>
             </tr>
@@ -113,18 +94,13 @@ router.post("/send-order", upload.array("productImages"), async (req, res) => {
       </div>
     `;
 
-    // Create an array of attachments (logo + product images if available)
+    // Create an array of attachments (logo only)
     const attachments = [
       {
         filename: "blackLogo.png",
         path: path.join(__dirname, "../asset/blackLogo.png"),
         cid: "wrapteeLogo", // Content-ID for logo
       },
-      ...(req.files ? req.files.map((file) => ({
-        filename: file.filename,
-        path: file.path,
-        cid: file.filename, // Content-ID for each product image
-      })) : []),
     ];
 
     // Log attachments to ensure they're correctly set
