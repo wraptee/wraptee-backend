@@ -72,7 +72,7 @@ router.post("/contact-us", async (req, res) => {
     await transporter.sendMail(mailOptions);
     res.status(200).json({ message: "WrapTee will respond you soon" });
   } catch (error) {
-    console.error("Error sending the email:", error);
+    console.error("Error sending email:", error);
     res.status(500).json({ message: "Failed to send order email", error: error.message });
   }
 });
